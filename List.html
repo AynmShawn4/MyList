@@ -1,0 +1,172 @@
+<!doctype html>
+<html ng-app="MyList">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-animate.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-sanitize.js"></script>
+    <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-2.5.0.js"></script>
+    <script src="List.js"></script>
+    <link href="List.css" rel="stylesheet">
+    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            <script type="text/ng-template" id="myModalContent.html">
+              <div class="modal-header">
+                  <h3 class="modal-title" id="modal-title">Choose or create tags!</h3>
+              </div>
+              <div class="modal-body">
+                <div> 
+                  <label ng-class="buttonClass" ng-repeat="x in currentTags" style="margin: 5px 5px 5px 5px">{{x}}
+                  <span ng-class="glyphiconClass" ng-click="removeTag($index, x)"></span></label> 
+                </div>
+
+                  <hr>
+                  <button class="btn btn-default" ng-click="collapse = !collapse">Customize</button >
+                  <button ng-class="deleteAddClass" ng-click="changeMode()" ng-bind="deleteAddModel"></button>
+                  <div uib-collapse="collapse">
+                    <form ng-submit="submit()">
+                      <input type="text" class="form-control" required ng-model="inputTag">
+                    </form>
+                  </div> 
+              </div>
+      
+              <div class="modal-footer">
+                  <button class="btn btn-primary" type="button" ng-click="ok()">OK</button>
+                  <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+              </div>
+          </script>
+  </head>
+  <body ng-controller="MyListController">
+    
+    <div class="container">
+
+      <div class="containier">
+          <nav class="navbar navbar-light" style="background-color: #e3f2fd;" role="navigation">
+            <div class="navbar-header"
+              <a class="navbar-brand" href="#" ng-bind="username" style="font-size: 40px"></a>
+            </div>
+            <ul class="nav navbar-nav navbar-right" style="margin-right:15px">
+              <li>
+                  <a href="#" ><span class="glyphicon glyphicon-envelope"></span>
+                    <button uib-popover-template="dynamicPopover.templateUrl" popover-is-open="popoverOpen" popover-placement="bottom" type="button" class="btn btn-default">New
+                    </button>
+                    <script type="text/ng-template" id="myPopoverTemplate.html">
+                        <div class="form-group">
+                          <label>Type a name:</label>
+                          <form ng-submit="usernameSubmit()"><input type="text" ng-model="dynamicPopover.name" ></form>
+                        </div>
+                    </script>
+                  </a>              
+              </li>
+              <li><a href="#"><span class="glyphicon glyphicon-upload"></span>
+                  <button ng-model="loadFile" file-upload class="btn btn-default">Load</button>
+                  <input onchange="angular.element(this).scope().submitFunc(this)" type="file" id="uploadFile" ng-model="fileInput" style="display:none"></input>
+                </a>
+              </li>
+              <li><a href="#"><span class="glyphicon glyphicon-download-alt"></span> 
+                <button ng-click="saveFunc()" id="fileDownload" class="btn btn-default">Download</button>
+                <a ng-href="" download="" id="link" style="display:none" ></a>
+              </a></li>
+            </ul>
+          </nav>
+      </div>
+
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 col-sm-5 col-xs-12"  ng-style="leftPanelStyle">
+            <nav class="navbar navbar-default" style="background-color: #bdcfed; margin-top: 10px" role="navigation">
+                <a class="navbar-brand" href="#">Sort By:</a>
+                <ul class="nav navbar-nav navbar-right" style="margin: 5px 10px 0px 0px">
+                  <li>
+                     <div class="btn-group" uib-dropdown is-open="status.isopen">
+                      <button id="single-button" type="button" ng-bind="ratingModel" class="btn btn-default" uib-dropdown-toggle ng-disabled="disabled">
+                      </button>
+                      <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="single-button">
+                        <li role="menuitem" ng-repeat="x in ratingFilter" ng-click="sortByRating($index)"><a href="#">{{x}}</a></li>            
+                      </ul>
+                    </div>
+                  </li>
+                </ul>
+            </nav>
+            <div style="border:1px solid black">
+              <div class="list-group" >                                                             <!-- only filter name field-->
+                <a href="#" class="list-group-item" ng-repeat="x in data.record | myRatingFilter:sortRating | filter:{name: searchModel.model}">{{x.name}} ({{x.rating}})</a>   
+              </div>
+            </div>
+            <div id="bottomSearch" >
+                <uib-accordion  >
+                  <div uib-accordion-group class="panel-default" heading="Search"  >
+                      <span uib-accordion-header class="glyphicon glyphicon-search"></span> 
+                      <!-- ng-model not working with input, have to use .model here-->
+                      <input type="text" ng-model="searchModel.model" style="width:100%" ></input>
+                  </div>
+                </uib-accordion> 
+            </div>
+          </div>
+          
+          <div class="col-md-7 col-sm-6 col-xs-12" ng-style="rightPanelStyle">
+            <div style="margin:auto; border: 1px solid black; text-align: center">
+              <img ng-src="{{imageModel}}" class="img-rounded"  width="304" height="300" >
+
+            </div>
+              <form class="form-horizontal">
+                <div class="form-group" style="margin-top:10px">
+                  <label class="col-md-2 col-sm-4" >Name <span style="color:red">*</span>: </label>
+                  <input class="col-md-9 col-sm-11" type="text" ng-model="nameModel" required></input>
+                </div>
+                <div class="form-group">           
+                  <label  class="col-md-2 col-sm-4">Tags:</label> 
+                  <div  class="col-md-9 col-sm-11" >
+                    <label class="btn btn-default btn-sm" ng-repeat="x in currentTags" style="margin: 5px 5px 5px 5px">{{x}}
+                      <span class="glyphicon glyphicon-remove-sign" ng-click="removeTag($index)"></span></label> 
+
+                    <button class="btn btn-primary btn-sm" style="display:block; margin:5px 5px 5px 5px" ng-click="open()">Add</button>
+
+                  </div>
+                </div>
+                <div class="form-group" >
+                  <label class="col-md-2 col-sm-4">Plot <span style="color:red">*</span>:</label>
+                  <textarea rows="3"class="col-md-9 col-sm-11"  class="form-control" style="vertical-align: top;" ng-model="plotModel" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="col-md-2 col-sm-4">Music <span style="color:red">*</span>: </label>
+                  <textarea class="col-md-9 col-sm-11" rows="2" class="form-control" style="vertical-align: top;" ng-model="musicModel" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="col-md-2 col-sm-4">Image: </label>
+                  <input class="col-md-9 col-sm-11" type="text" class="form-control" style="vertical-align: top;" ng-model="imageModel" ></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="col-md-2 col-sm-4" >Overall <span style="color:red">*</span>:</label>
+                  <textarea  class="col-md-9 col-sm-11" rows="3" class="form-control" style="vertical-align: top;" ng-model="overallModel" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="col-md-2 col-sm-4" >Rating <span style="color:red">*</span>:</label>
+                  <div class="btn-group" >
+                    <label class="btn btn-default" ng-model="radioModel" uib-btn-radio="'B+'" ng-click="rating(0)" >B+</label>
+                    <label class="btn btn-default" ng-model="radioModel" uib-btn-radio="'A-'" ng-click="rating(1)">A-</label>
+                    <label class="btn btn-default" ng-model="radioModel" uib-btn-radio="'A'" ng-click="rating(2)">A</label>
+                    <label class="btn btn-default" ng-model="radioModel" uib-btn-radio="'A+-'" ng-click="rating(3)">A+-</label>
+                    <label class="btn btn-default" ng-model="radioModel" uib-btn-radio="'A+'" ng-click="rating(4)">A+</label>
+                    <label class="btn btn-default" ng-model="radioModel" uib-btn-radio="'A++'" ng-click="rating(5)">A++</label>
+                    <label class="btn btn-default" ng-model="radioModel" uib-btn-radio="'S'" ng-click="rating(6)">S</label>
+                  </div>           
+                </div>
+                <div ng-show="msgShow">
+                  <div uib-alert  ng-class="msgClss" >
+                    {{msg}}
+                  </div>
+                </div>
+                <div style="text-align:center" >
+                  <button class="btn btn-primary" ng-click="submit()" >Add</button>
+                  <button class="btn btn-warning" ng-click="submit()" >Reset</button>
+                  <button class="btn btn-danger" ng-click="submit()" >Delete</button>
+                </div>
+            
+              </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+<script src="ListDirectives.js"></script>
+</html>
